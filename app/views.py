@@ -88,6 +88,7 @@ def securepage():
     if 'access_token' in session:
         # TODO: call to Check_token to validate this token
         return 'This is a secure page,gated by UAA'
+        #text='This is a secure page,gated by UAA'
     else :
         text = '<br> <a href="%s">Authenticate with Predix UAA </a>'
         return 'Token not found, You are not logged in to UAA '+text % getUAAAuthorizationUrl()
