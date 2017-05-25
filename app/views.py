@@ -41,13 +41,13 @@ if(os.getenv('client_id')):
 if(os.getenv('base64encodedClientDetails')):
     BASE64ENCODING = os.getenv('base64encodedClientDetails')
 
-
+'''
 @app.route('/')
 def home():
     print 'Calling root resource'
     text = '<br> <a href="%s">Authenticate with Predix UAA </a>'
     return 'Hello from Python microservice template!'+text % getUAAAuthorizationUrl()
-
+'''
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -61,7 +61,7 @@ def login():
                            title='Sign In',
                            form=form)
 
-@app.route('/index')
+@app.route('/')
 def index():
     user = {'nickname': 'Miguel'}  # fake user
     posts = [  # fake array of posts
@@ -77,7 +77,8 @@ def index():
     return render_template('index/index.html',
                            title='Home',
                            posts=posts,
-                           user=user)
+                           user=user, 
+                           loginURL=getUAAAuthorizationUrl())
 
 
 

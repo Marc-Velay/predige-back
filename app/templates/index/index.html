@@ -1,6 +1,7 @@
 {% extends "index/base.html" %}
 {% block content %}
     <h1>Hi, {{ user.nickname }}!</h1>
+    <br> <a href="{{ loginURL }}">Authenticate with Predix UAA </a>
     {% for post in posts %}
     <div class="msg"><p>{{ post.author.nickname }} says: <b>{{ post.body }}</b></p></div>
     {% endfor %}
