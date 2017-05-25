@@ -80,6 +80,12 @@ def index():
                            user=user, 
                            loginURL=getUAAAuthorizationUrl())
 
+@app.route('/dashboard')
+def dashboardpage():
+    print 'dashboard'
+    return render_template('index/dashboard.html',
+                            title='Dashboard',
+                            app_url=APP_URL)
 
 
 @app.route('/secure')
