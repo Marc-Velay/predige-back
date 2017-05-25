@@ -41,13 +41,23 @@ if(os.getenv('client_id')):
 if(os.getenv('base64encodedClientDetails')):
     BASE64ENCODING = os.getenv('base64encodedClientDetails')
 
-'''
+
 @app.route('/')
 def home():
-    print 'Calling root resource'
-    text = '<br> <a href="%s">Authenticate with Predix UAA </a>'
-    return 'Hello from Python microservice template!'+text % getUAAAuthorizationUrl()
-'''
+    #print 'Calling root resource'
+    #text = '<br> <a href="%s">Authenticate with Predix UAA </a>'
+    #return 'Hello from Python microservice template!'+text % getUAAAuthorizationUrl()
+
+    key = session.get('key', 'not set')
+    if 'access_token' in session:
+        # TODO: call to Check_token to validate this token
+        #return 'This is a secure page,gated by UAA'
+        return redirect(APP_URL+"/index", code=302)
+    else :
+        #text = '<br> <a href="%s">Authenticate with Predix UAA </a>'
+        #return 'Token not found, You are not logged in to UAA '+text % getUAAAuthorizationUrl()
+        return redirect(getUAAAuthorizationUrl(), code=302)
+
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -61,7 +71,7 @@ def login():
                            title='Sign In',
                            form=form)
 
-@app.route('/')
+@app.route('/index')
 def index():
     user = {'nickname': 'Miguel'}  # fake user
     posts = [  # fake array of posts
@@ -87,7 +97,7 @@ def dashboardpage():
                             title='Dashboard',
                             app_url=APP_URL)
 
-
+'''
 @app.route('/secure')
 def securepage():
     print 'securepage '
@@ -99,6 +109,7 @@ def securepage():
     else :
         text = '<br> <a href="%s">Authenticate with Predix UAA </a>'
         return 'Token not found, You are not logged in to UAA '+text % getUAAAuthorizationUrl()
+'''
 
 ## Auth-code grant-type required UAA
 @app.route('/callback')
@@ -116,7 +127,7 @@ def UAAcallback():
     # TODO: store the user token in sesson or redis cache , but for now use Flask session
     session['access_token'] = access_token
     print "You have logged in using UAA  with this access token %s" % access_token
-    return redirect(APP_URL+"/secure", code=302)
+    return redirect(APP_URL+"/", code=302)
    
 
 # method to consttruct Oauth authorization request
