@@ -5,9 +5,14 @@ import requests.auth
 import urllib
 import base64
 import os
+import pandas as pd
+import base64
 import json
 from app import app
 from .forms import LoginForm
+#from bokeh.io import output_notebook
+#from bokeh.charts import TimeSeries, output_file, show 
+#output_notebook()
 
 
 ## SET this only for local testing, if VCAPS is set env they will be overwritten by VCAPS.
@@ -16,6 +21,14 @@ UAA_URL= None #"https://9c5f79c3-9760-47fc-b23f-0beba4525e10.predix-uaa.run.aws-
 BASE64ENCODING = None #'YXBwX2NsaWVudF9pZDpzZWNyZXQ='
 port = int(os.getenv("PORT", 9099))
 REDIRECT_URI = None #"http://localhost:"+str(port)+"/callback"
+
+uaaUrl = "https://iiotquest-uaa-service.predix-uaa.run.aws-usw02-pr.ice.predix.io"
+#tsUrl = "https://time-series-store-predix.run.aws-usw02-pr.ice.predix.io/v1/datapoints"
+tsUrl = "https://time-series-store-predix.run.aws-usw02-pr.ice.predix.io/v1/tags"
+payload_last = "{\"tags\": [{\"name\": \"Compressor-2015:CompressionRatio\"}]}"
+payload_first = "{\"tags\": [{\"name\": \"Compressor-2015:CompressionRatio\"}]}"
+zoneId = "6138f224-a4d2-4329-8a10-5ffdc3d4ca9f"
+tokents = base64.b64encode('timeseries_client_readonly:IM_SO_SECRET')
 
 ## Setting up Oauth2 , this values should be read from vcaps .
 APP_URL= None
@@ -84,11 +97,32 @@ def index():
             'body': 'The Avengers movie was so cool!' 
         }
     ]
+    
+    firstPoint = doQuery(payload_first, tsUrl, uaaUrl, tokents, zoneId)
+    '''startDate =  pd.Timestamp(firstPoint['timestamp'][0])
+    startDate = int(startDate.strftime("%s")) * 1000
+    startDateOrigin = startDate
+    
+    lastPoint = doQuery(payload_last, tsUrl, uaaUrl, tokents, zoneId)
+    endDate =  pd.Timestamp(lastPoint['timestamp'][0])
+    endDate = int(endDate.strftime("%s")) * 1000
+    pdArray = []
+
+    while (startDate < endDate ):
+        payload = { 'cache_time': 0, 'tags': [{'name': 'Flight_128.Air_Density_ambient_kg_m', 'order': 'asc'}], 'start': startDate, 'end': startDate + 10000000}
+        startDate = startDate + 100000000
+        series = doQuery(json.dumps(payload), tsUrl, uaaUrl, tokents, zoneId)
+        pdArray.append(series)
+
+    fullseries = pd.concat(pdArray)
+    '''
+
     return render_template('index/index.html',
                            title='Home',
                            posts=posts,
                            user=user, 
-                           loginURL=getUAAAuthorizationUrl())
+                           loginURL=getUAAAuthorizationUrl(),
+                           fp=firstPoint)
 
 @app.route('/dashboard')
 def dashboardpage():
@@ -162,3 +196,33 @@ def is_valid_state(state):
         return True
     else :
         return False
+
+def doQuery(payload, tsUrl, uaaUrl, tokents, zoneId):
+    
+    headers = {
+        'authorization': 'Basic ' + tokents,
+        'cache-control': 'no-cache',
+        'content-type': 'application/x-www-form-urlencoded'
+    }
+    data = {
+        'client_id':'timeseries_client_readonly',
+        'grant_type':'client_credentials'
+    }
+    
+    response = requests.request('POST', uaaUrl+"/oauth/token", data=data, headers=headers)
+    tokents = json.loads(response.text)['access_token']
+    #return json.loads(response.text)['access_token']
+    headers = {
+        'authorization': "Bearer " + tokents,
+        'predix-zone-id': "" + zoneId,
+        #'content-type': "application/json",
+        #'cache-control': "no-cache"
+    }
+    
+    response = requests.request("GET", tsUrl, data=payload, headers=headers)
+    data = json.loads(response.text)#['tags'][0]['results'][0]['values']
+    #column_labels = ['timestamp', 'values', 'quality']
+    #series = pd.DataFrame(data, columns=column_labels)
+    #series['timestamp'] = pd.to_datetime(series['timestamp'], unit='ms')
+    return data
+    

@@ -1,5 +1,7 @@
-Flask_WTF==0.14.2
+pandas==0.20.1
+Flask==0.12.2
+bokeh==0.12.5
 requests==2.14.2
 WTForms==2.1
-Flask==0.12.2
+Flask_WTF==0.14.2
 gunicorn
