@@ -1,0 +1,14 @@
+<!-- extend from base layout -->
+{% extends "index/base.html" %}
+{% block content %}
+  <h1>Hello! check console</h1>
+    <div> 
+        <ul>
+        {% for tag in fp %}
+        <li>
+            {{ tag }}
+        </li>
+        {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

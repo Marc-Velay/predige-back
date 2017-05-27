@@ -85,71 +85,18 @@ def login():
 @app.route('/index')
 def index():
     user = {'nickname': 'Miguel'}  # fake user
-    flights = [  # fake array of posts
-        { 
-            'id': 1
-        },
-        { 
-            'id': 2
-        },
-        { 
-            'id': 3
-        },
-        { 
-            'id': 4
-        },
-        { 
-            'id': 5
-        },
-        { 
-            'id': 6
-        },
-        { 
-            'id': 7
-        },
-        { 
-            'id': 8
-        },
-        { 
-            'id': 9
-        },
-        { 
-            'id': 10
-        },
-        { 
-            'id': 11
-        },
-        { 
-            'id': 12
-        },
-        { 
-            'id': 13
-        },
-        { 
-            'id': 14
-        },
-        { 
-            'id': 15
-        },
-        { 
-            'id': 16
-        },
-        { 
-            'id': 17
-        },
-        { 
-            'id': 18
-        }
-    ]
-    
+     
+    flights = set()
     firstPoint = doQueryTags(requestTags, tsUrl, uaaUrl, tokents, zoneId)
-
+    for item in firstPoint["results"]:
+        tmp,_ = item.split('.', 1)
+        flights.add(tmp)
+    
     return render_template('index/index.html',
                            title='Home',
                            flights=flights,
                            user=user, 
-                           loginURL=getUAAAuthorizationUrl(),
-                           fp=firstPoint)
+                           loginURL=getUAAAuthorizationUrl())
 
 @app.route('/dashboard')
 def dashboardpage():
@@ -161,8 +108,14 @@ def dashboardpage():
 @app.route('/flight')
 def flightspage():
     print 'flight'
+    tags = set()
+    firstPoint = doQueryTags(requestTags, tsUrl, uaaUrl, tokents, zoneId)
+    for item in firstPoint["results"]:
+        _,tmp = item.split('.', 1)
+        tags.add(tmp)
     return render_template('index/flights.html',
-                            title='Flight')
+                            title='Flight',
+                            fp=tags)
 
 ## Auth-code grant-type required UAA
 @app.route('/callback')
