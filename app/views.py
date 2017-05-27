@@ -16,11 +16,11 @@ from .forms import LoginForm
 
 
 ## SET this only for local testing, if VCAPS is set env they will be overwritten by VCAPS.
-CLIENT_ID = None # "app_client_id"
-UAA_URL= None #"https://9c5f79c3-9760-47fc-b23f-0beba4525e10.predix-uaa.run.aws-usw02-pr.ice.predix.io"
-BASE64ENCODING = None #'YXBwX2NsaWVudF9pZDpzZWNyZXQ='
-port = int(os.getenv("PORT", 9099))
-REDIRECT_URI = None #"http://localhost:"+str(port)+"/callback"
+CLIENT_ID = "dev" # "app_client_id"
+UAA_URL= "https://marcv-dapep-flask.predix-uaa.run.aws-usw02-pr.ice.predix.io/" #"https://9c5f79c3-9760-47fc-b23f-0beba4525e10.predix-uaa.run.aws-usw02-pr.ice.predix.io"
+BASE64ENCODING = "ZGV2OnRvdG8xMjM0" #'YXBwX2NsaWVudF9pZDpzZWNyZXQ='
+port = int(os.getenv("PORT", 3000))
+REDIRECT_URI = "http://localhost:3000/callback" #"http://localhost:"+str(port)+"/callback"
 
 uaaUrl = "https://iiotquest-uaa-service.predix-uaa.run.aws-usw02-pr.ice.predix.io"
 #tsUrl = "https://time-series-store-predix.run.aws-usw02-pr.ice.predix.io/v1/datapoints"
@@ -182,20 +182,6 @@ def flightspage():
     print 'flight'
     return render_template('index/flights.html',
                             title='Flight')
-
-'''
-@app.route('/secure')
-def securepage():
-    print 'securepage '
-    key = session.get('key', 'not set')
-    if 'access_token' in session:
-        # TODO: call to Check_token to validate this token
-        return 'This is a secure page,gated by UAA'
-        #text='This is a secure page,gated by UAA'
-    else :
-        text = '<br> <a href="%s">Authenticate with Predix UAA </a>'
-        return 'Token not found, You are not logged in to UAA '+text % getUAAAuthorizationUrl()
-'''
 
 ## Auth-code grant-type required UAA
 @app.route('/callback')
