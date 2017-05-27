@@ -87,14 +87,60 @@ def login():
 @app.route('/index')
 def index():
     user = {'nickname': 'Miguel'}  # fake user
-    posts = [  # fake array of posts
+    flights = [  # fake array of posts
         { 
-            'author': {'nickname': 'John'}, 
-            'body': 'Beautiful day in Portland!' 
+            'id': 1
         },
         { 
-            'author': {'nickname': 'Susan'}, 
-            'body': 'The Avengers movie was so cool!' 
+            'id': 2
+        },
+        { 
+            'id': 3
+        },
+        { 
+            'id': 4
+        },
+        { 
+            'id': 5
+        },
+        { 
+            'id': 6
+        },
+        { 
+            'id': 7
+        },
+        { 
+            'id': 8
+        },
+        { 
+            'id': 9
+        },
+        { 
+            'id': 10
+        },
+        { 
+            'id': 11
+        },
+        { 
+            'id': 12
+        },
+        { 
+            'id': 13
+        },
+        { 
+            'id': 14
+        },
+        { 
+            'id': 15
+        },
+        { 
+            'id': 16
+        },
+        { 
+            'id': 17
+        },
+        { 
+            'id': 18
         }
     ]
     
@@ -119,7 +165,7 @@ def index():
 
     return render_template('index/index.html',
                            title='Home',
-                           posts=posts,
+                           flights=flights,
                            user=user, 
                            loginURL=getUAAAuthorizationUrl(),
                            fp=firstPoint)
@@ -130,6 +176,12 @@ def dashboardpage():
     return render_template('index/dashboard.html',
                             title='Dashboard',
                             app_url=APP_URL)
+
+@app.route('/flight')
+def flightspage():
+    print 'flight'
+    return render_template('index/flights.html',
+                            title='Flight')
 
 '''
 @app.route('/secure')

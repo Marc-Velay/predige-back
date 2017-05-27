@@ -2,8 +2,24 @@
 {% block content %}
     <h1>Hi, {{ user.nickname }}!</h1>
     <br> <a href="{{ loginURL }}">Authenticate with Predix UAA </a>
-    {% for post in posts %}
-    <div class="msg"><p>{{ post.author.nickname }} says: <b>{{ post.body }}</b></p></div>
+
+    <br>
+    <br>
+    <h3> Vols </h3> 
+    <div class="row">
+    {% for flight in flights %}
+    	<div class="col-md-3">
+            <div class="thumbmail">
+    		<a href="/flight&fly={{ flight.id }}"><img src="http://www.ouest-france.fr/sites/default/files/styles/image-640x360/public/2016/08/24/les-turbulences-peuvent-elles-provoquer-un-crash-dun-avion.jpg?itok=J05mglmL" width="100%" height="auto">
+    		</a>
+		<div class="caption">
+			Vol : {{ flight.id }}
+		</div> 
+            </div>    
+	    <br>
+	   
+    	</div>
     {% endfor %}
+    </div>
     <script> console.log("response:  {{ fp }}")</script>
 {% endblock %}
