@@ -128,13 +128,14 @@ def flightspage():
 
         
         firstPoint = doQuery(json.dumps(requestDatafromTag_first, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
-        print(firstPoint)
         if firstPoint.empty: 
             return render_template('index/flights.html',
                             title='Flight',
                             fp=tags,
                             data=data,
-                            msg="No data here")
+                            msg="No data here",
+                            flight=flight,
+                            tag=tag)
         startDate =  pd.Timestamp(firstPoint['timestamp'][0])
         startDate = int(startDate.strftime("%s")) * 1000
         startDateOrigin = startDate
@@ -154,12 +155,13 @@ def flightspage():
         data = dict(vals = fullseries['values'], Date=fullseries['timestamp'])
         dataJson = json.dumps([{'Date': time, 'val': value} for time, value in zip(data['Date'], data['vals'])], default=json_serial)
         data = json.loads(dataJson)
-        flight=None
-        tag=None
     return render_template('index/flights.html',
                             title='Flight',
                             fp=tags,
-                            data=data)
+                            data=data,
+                            msg="",
+                            flight=flight,
+                            tag=tag)
 
 ## Auth-code grant-type required UAA
 @app.route('/callback')

@@ -1,8 +1,8 @@
 <!-- extend from base layout -->
 {% extends "index/base.html" %}
 {% block content %}
-  <h1>Hello! check console</h1>
-    <div> 
+  <h1>Hello! check console: fligt {{ flight }}</h1>
+    <div>  current tag: {{ tag }} <br>
         <select id="tagBoxFlights" onchange="selectedTag()">
         {% for tag in fp %}
         <option value="{{ tag }}">
