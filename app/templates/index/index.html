@@ -23,3 +23,9 @@
     </div>
     
 {% endblock %}
+
+{% block javascript %}
+	{{ super() }}
+<script src="/static/bower_components/webcomponentsjs/webcomponents-loader.js"></script>	
+
+{% endblock %}

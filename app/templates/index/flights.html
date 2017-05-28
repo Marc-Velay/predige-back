@@ -1,9 +1,9 @@
 <!-- extend from base layout -->
 {% extends "index/base.html" %}
 {% block content %}
-  <h1>Hello! check console: fligt {{ flight }}</h1>
-    <div>  current tag: {{ tag }} <br>
-        <select id="tagBoxFlights" onchange="selectedTag()">
+   <h1>Hello! check console: fligt {{ flight }}</h1>
+      <div>  current tag: {{ tag }} <br>
+    <select id="tagBoxFlights" onchange="selectedTag()">
         {% for tag in fp %}
         <option value="{{ tag }}">
             {{ tag }}
@@ -18,5 +18,74 @@
         {% endfor %}
     </ul>
     <p> {{ msg }} </p>
-    </div>
+</div>
+    <div id="chart"></div>
+{% endblock %}
+
+{% block javascript %}
+	{{ super() }}	
+<script type="text/javascript">
+        $(document).ready(function(){
+
+google.charts.load('current', {'packages':['line'], 'language': 'fr'});
+google.charts.load('current', {'packages':['corechart'], 'language': 'fr'});
+
+var volnumber = {{ volNumber }};
+var tagselect = 'Air_Density_ambient_kg_m';
+
+function requestData(fly
+$.ajax({
+    url: "/flight+
+    "?fly="+ volnumber +
+    "&tag="+ tagSelect
+    type: 'GET',
+    dataType: 'json',
+    success: function(data,result, o) {
+	console.log(data);
+	console.log(result);
+        if(data.length != 0){
+         //   google.charts.setOnLoadCallback(drawChart());
+        } 
+
+    },
+    error: function(result) {
+        console.log("Erreur");
+        console.log(result);
+    }
+});
+/*
+
+function drawChart() {
+                var data = new google.visualization.DataTable();
+                data.addColumn('date', 'Journée');
+                data.addColumn('number', 'a voir');
+                $.each(sensor.data, function(i, field){
+                    data.addRow([new Date(field["date"]),field["value"]]);
+                });
+                var options = {
+                    title: 'titre',
+                    subtitle: 'sous titre,
+                    'width':'100%',
+                    'height':400,
+                    legend: { position: 'right' },
+                    hAxis: {
+                        format: 'HH:mm'
+                    },
+                    vAxis: {
+                        viewWindow : {
+                            max : 100,
+                            min : -100
+                        }
+                    },
+                    animation:{
+                        duration: 3000,
+                        easing: 'inAndOut'
+                    }
+                };
+                var chart = new google.charts.Line(document.getElementById(chart));
+                chart.draw(data, google.charts.Line.convertOptions(options));
+            }
+
+*/
+});
 {% endblock %}
