@@ -3,7 +3,7 @@
 {% block content %}
    <h1>Hello! check console: flight {{ flight }} </h1>
       <div>  current tag: {{ tag }} <br>
-    <select id="tagBoxFlights" onchange="selectedTag()">
+    <select id="tagBoxFlights">
         {% for tag in fp %}
         <option value="{{ tag }}">
             {{ tag }}
@@ -32,62 +32,69 @@ google.charts.load('current', {'packages':['corechart'], 'language': 'fr'});
 
 var volnumber = 'Flight_22';
 var tagselect = 'Air_Density_ambient_kg_m';
-requestData();
-function requestData(){
-$.ajax({
-    url: "/flight" +
-    "?fly="+ volnumber +
-    "&tag="+ tagselect,
-    type: 'GET',
-    dataType: 'json',
-    success: function(data,result, o) {
-	console.log(data);
-	console.log(result);
-        if(data.length != 0){
-         //   google.charts.setOnLoadCallback(drawChart());
-        } 
 
-    },
-    error: function(result) {
-        console.log("Erreur");
-        console.log(result);
-    }
-});
+function requestData(tag){
+	$.ajax({
+	    url: "/flightData" +
+	    "?fly="+ volnumber +
+	    "&tag="+ tag,
+	    type: 'GET',
+	    dataType: 'json',
+	    success: function(data,result, o) {
+		console.log(data["data"]);
+		console.log(result);
+		if(data.length != 0){
+		   google.charts.setOnLoadCallback(drawChart(data["data"]));
+		} 
+
+	    },
+	    error: function(result) {
+		console.log("Erreur");
+		console.log(result);
+	    }
+	});
 }
-/*
 
-function drawChart() {
+//alert("works!");
+
+$("#tagBoxFlights").change(function (){
+    var selectedValue = this.options[this.selectedIndex].value;
+    requestData(selectedValue);	
+});
+
+function select() {
+
+    
+    //var base = window.location.href.split('?')[0];
+    //var flight = window.location.href.split('?')[1].split('&')[0];
+    //window.location.href = base+'?'+flight+'&tag='+selectedValue;
+}
+
+
+function drawChart(dataJSON) {
                 var data = new google.visualization.DataTable();
                 data.addColumn('date', 'Journée');
                 data.addColumn('number', 'a voir');
-                $.each(sensor.data, function(i, field){
-                    data.addRow([new Date(field["date"]),field["value"]]);
+                $.each(dataJSON, function(i, field){
+                    data.addRow([new Date(field["Date"]),field["val"]]);
                 });
+		console.log(data);
                 var options = {
                     title: 'titre',
-                    subtitle: 'sous titre,
+                    subtitle: 'sous titre',
                     'width':'100%',
-                    'height':400,
+                    'height':600,
                     legend: { position: 'right' },
-                    hAxis: {
-                        format: 'HH:mm'
-                    },
-                    vAxis: {
-                        viewWindow : {
-                            max : 100,
-                            min : -100
-                        }
-                    },
                     animation:{
                         duration: 3000,
                         easing: 'inAndOut'
                     }
                 };
-                var chart = new google.charts.Line(document.getElementById(chart));
+                var chart = new google.charts.Line(document.getElementById('chart'));
                 chart.draw(data, google.charts.Line.convertOptions(options));
             }
 
-*/
+
 });
 </script>
 {% endblock %}
