@@ -109,6 +109,8 @@ def dashboardpage():
 def flightspage():
     print 'flight'
     tags = set()
+    tag = set()
+    flight = set()
     data = {}
     if request.args.get('tag') is None:
         firstPoint = doQueryTags(requestTags, tsUrl, uaaUrl, tokents, zoneId)
