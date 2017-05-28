@@ -109,63 +109,63 @@ def dashboardpage():
 def flightspage():
     print 'flight'
     tags = set()
-    tag = set()
-    flight = set()
-    data = {}
     flight = None
     tag = None
-    if request.args.get('tag') is None:
-        firstPoint = doQueryTags(requestTags, tsUrl, uaaUrl, tokents, zoneId)
-        for item in firstPoint["results"]:
-            _,tmp = item.split('.', 1)
-            tags.add(tmp)
-    else:
-        firstPoint = doQueryTags(requestTags, tsUrl, uaaUrl, tokents, zoneId)
-        for item in firstPoint["results"]:
-            _,tmp = item.split('.', 1)
-            tags.add(tmp)
-        flight = request.args.get('fly')
-        tag = request.args.get('tag')
+    flight = request.args.get('fly')
+    tag = request.args.get('tag')
+    firstPoint = doQueryTags(requestTags, tsUrl, uaaUrl, tokents, zoneId)
+    for item in firstPoint["results"]:
+        _,tmp = item.split('.', 1)
+        tags.add(tmp)
         
-        requestDatafromTag_last = {"start": "50y-ago", "tags": [{"name": flight+"."+tag, "order": "desc", "limit": 1}]}
-        requestDatafromTag_first = {"start": "50y-ago", "tags": [{"name": flight+"."+tag, "order": "asc", "limit": 1}]}
-
-        
-        firstPoint = doQuery(json.dumps(requestDatafromTag_first, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
-        if firstPoint.empty: 
-            return render_template('index/flights.html',
-                            title='Flight',
-                            fp=tags,
-                            data=data,
-                            msg="No data here",
-                            flight=flight,
-                            tag=tag)
-        startDate =  pd.Timestamp(firstPoint['timestamp'][0])
-        startDate = int(startDate.strftime("%s")) * 1000
-        startDateOrigin = startDate
-        
-        lastPoint = doQuery(json.dumps(requestDatafromTag_last, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
-        endDate =  pd.Timestamp(lastPoint['timestamp'][0])
-        endDate = int(endDate.strftime("%s")) * 1000
-        pdArray = []
-
-        while (startDate < endDate ):
-            payload = { 'cache_time':0, 'tags':[{'name': flight+"."+tag, 'order': 'asc'}], 'start': startDate, 'end': startDate + 10000000}
-            startDate = startDate + 100000000
-            series = doQuery(json.dumps(payload, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
-            pdArray.append(series)
-
-        fullseries = pd.concat(pdArray)
-        data = dict(vals = fullseries['values'], Date=fullseries['timestamp'])
-        dataJson = json.dumps([{'Date': time, 'val': value} for time, value in zip(data['Date'], data['vals'])], default=json_serial)
-        data = json.loads(dataJson)
     return render_template('index/flights.html',
                             title='Flight',
                             fp=tags,
-                            data=data,
-                            msg="",
                             flight=flight,
                             tag=tag)
+
+@app.route('/flightData', methods=['GET','POST'])
+def reqFlightData():
+    tags = set()
+    flight = None
+    tag = None
+    data = {}
+    flight = request.args.get('fly')
+    tag = request.args.get('tag')
+    
+    firstPoint = doQueryTags(requestTags, tsUrl, uaaUrl, tokents, zoneId)
+    for item in firstPoint["results"]:
+        _,tmp = item.split('.', 1)
+        tags.add(tmp)
+
+    requestDatafromTag_last = {"start": "50y-ago", "tags": [{"name": flight+"."+tag, "order": "desc", "limit": 1}]}
+    requestDatafromTag_first = {"start": "50y-ago", "tags": [{"name": flight+"."+tag, "order": "asc", "limit": 1}]}
+
+    
+    firstPoint = doQuery(json.dumps(requestDatafromTag_first, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
+    if firstPoint.empty: 
+        return json.dumps({'success':False, 'error':"No data associated to tag"}), 200, {'ContentType':'application/json'}
+    startDate =  pd.Timestamp(firstPoint['timestamp'][0])
+    startDate = int(startDate.strftime("%s")) * 1000
+    startDateOrigin = startDate
+    
+    lastPoint = doQuery(json.dumps(requestDatafromTag_last, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
+    endDate =  pd.Timestamp(lastPoint['timestamp'][0])
+    endDate = int(endDate.strftime("%s")) * 1000
+    pdArray = []
+
+    while (startDate < endDate ):
+        payload = { 'cache_time':0, 'tags':[{'name': flight+"."+tag, 'order': 'asc'}], 'start': startDate, 'end': startDate + 10000000}
+        startDate = startDate + 100000000
+        series = doQuery(json.dumps(payload, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
+        pdArray.append(series)
+
+    fullseries = pd.concat(pdArray)
+    data = dict(vals = fullseries['values'], Date=fullseries['timestamp'])
+    dataJson = json.dumps([{'Date': time, 'val': value} for time, value in zip(data['Date'], data['vals'])], default=json_serial)
+    data = json.loads(dataJson)
+    return json.dumps({'success':True, 'data':data}), 200, {'ContentType':'application/json'}
+
 
 ## Auth-code grant-type required UAA
 @app.route('/callback')
