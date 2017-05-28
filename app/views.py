@@ -109,6 +109,8 @@ def dashboardpage():
 def flightspage():
     print 'flight'
     tags = set()
+    tag = set()
+    flight = set()
     data = {}
     flight = None
     tag = None

@@ -1,7 +1,7 @@
 <!-- extend from base layout -->
 {% extends "index/base.html" %}
 {% block content %}
-   <h1>Hello! check console: fligt {{ flight }}</h1>
+   <h1>Hello! check console: flight {{ flight }} </h1>
       <div>  current tag: {{ tag }} <br>
     <select id="tagBoxFlights" onchange="selectedTag()">
         {% for tag in fp %}
@@ -30,14 +30,14 @@
 google.charts.load('current', {'packages':['line'], 'language': 'fr'});
 google.charts.load('current', {'packages':['corechart'], 'language': 'fr'});
 
-var volnumber = {{ volNumber }};
+var volnumber = 'Flight_22';
 var tagselect = 'Air_Density_ambient_kg_m';
-
-function requestData(fly
+requestData();
+function requestData(){
 $.ajax({
-    url: "/flight+
+    url: "/flight" +
     "?fly="+ volnumber +
-    "&tag="+ tagSelect
+    "&tag="+ tagselect,
     type: 'GET',
     dataType: 'json',
     success: function(data,result, o) {
@@ -53,6 +53,7 @@ $.ajax({
         console.log(result);
     }
 });
+}
 /*
 
 function drawChart() {
@@ -88,4 +89,5 @@ function drawChart() {
 
 */
 });
+</script>
 {% endblock %}
