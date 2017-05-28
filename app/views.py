@@ -110,6 +110,8 @@ def flightspage():
     print 'flight'
     tags = set()
     data = {}
+    flight = None
+    tag = None
     if request.args.get('tag') is None:
         firstPoint = doQueryTags(requestTags, tsUrl, uaaUrl, tokents, zoneId)
         for item in firstPoint["results"]:
