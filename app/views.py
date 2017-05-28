@@ -105,17 +105,61 @@ def dashboardpage():
                             title='Dashboard',
                             app_url=APP_URL)
 
-@app.route('/flight')
+@app.route('/flight', methods=['GET', 'POST'])
 def flightspage():
     print 'flight'
     tags = set()
-    firstPoint = doQueryTags(requestTags, tsUrl, uaaUrl, tokents, zoneId)
-    for item in firstPoint["results"]:
-        _,tmp = item.split('.', 1)
-        tags.add(tmp)
+    data = {}
+    if request.args.get('tag') is None:
+        firstPoint = doQueryTags(requestTags, tsUrl, uaaUrl, tokents, zoneId)
+        for item in firstPoint["results"]:
+            _,tmp = item.split('.', 1)
+            tags.add(tmp)
+    else:
+        firstPoint = doQueryTags(requestTags, tsUrl, uaaUrl, tokents, zoneId)
+        for item in firstPoint["results"]:
+            _,tmp = item.split('.', 1)
+            tags.add(tmp)
+        flight = request.args.get('fly')
+        tag = request.args.get('tag')
+        
+        requestDatafromTag_last = {"start": "50y-ago", "tags": [{"name": flight+"."+tag, "order": "desc", "limit": 1}]}
+        requestDatafromTag_first = {"start": "50y-ago", "tags": [{"name": flight+"."+tag, "order": "asc", "limit": 1}]}
+
+        
+        firstPoint = doQuery(json.dumps(requestDatafromTag_first, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
+        print(firstPoint)
+        if firstPoint.empty: 
+            return render_template('index/flights.html',
+                            title='Flight',
+                            fp=tags,
+                            data=data,
+                            msg="No data here")
+        startDate =  pd.Timestamp(firstPoint['timestamp'][0])
+        startDate = int(startDate.strftime("%s")) * 1000
+        startDateOrigin = startDate
+        
+        lastPoint = doQuery(json.dumps(requestDatafromTag_last, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
+        endDate =  pd.Timestamp(lastPoint['timestamp'][0])
+        endDate = int(endDate.strftime("%s")) * 1000
+        pdArray = []
+
+        while (startDate < endDate ):
+            payload = { 'cache_time':0, 'tags':[{'name': flight+"."+tag, 'order': 'asc'}], 'start': startDate, 'end': startDate + 10000000}
+            startDate = startDate + 100000000
+            series = doQuery(json.dumps(payload, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
+            pdArray.append(series)
+
+        fullseries = pd.concat(pdArray)
+        data = dict(vals = fullseries['values'], Date=fullseries['timestamp'])
+        dataJson = json.dumps([{'Date': time, 'val': value} for time, value in zip(data['Date'], data['vals'])], default=json_serial)
+        data = json.loads(dataJson)
+        flight=None
+        tag=None
     return render_template('index/flights.html',
                             title='Flight',
-                            fp=tags)
+                            fp=tags,
+                            data=data)
 
 ## Auth-code grant-type required UAA
 @app.route('/callback')
@@ -265,4 +309,32 @@ def doQuery(payload, tsDataUrl, uaaUrl, tokents, zoneId):
     series = pd.DataFrame(data, columns=column_labels)
     series['timestamp'] = pd.to_datetime(series['timestamp'], unit='ms')
     return series
+    
+def doQueryTwo(payload, tsDataUrl, uaaUrl, tokents, zoneId):
+    
+    headers = {
+        'authorization': 'Basic ' + tokents,
+        'cache-control': 'no-cache',
+        'content-type': 'application/x-www-form-urlencoded'
+    }
+    data = {
+        'client_id':'timeseries_client_readonly',
+        'grant_type':'client_credentials'
+    }
+    
+    response = requests.request('POST', uaaUrl+"/oauth/token", data=data, headers=headers)
+    tokents = json.loads(response.text)['access_token']
+    headers = {
+        'authorization': "Bearer " + tokents,
+        'predix-zone-id': "" + zoneId,
+        'content-type': "application/json",
+        'cache-control': "no-cache"
+    }
+    
+    response = requests.request("POST", tsDataUrl, data=payload, headers=headers)
+    '''data = json.loads(response.text)['tags'][0]['results'][0]['values']
+    column_labels = ['timestamp', 'values', 'quality']
+    series = pd.DataFrame(data, columns=column_labels)
+    series['timestamp'] = pd.to_datetime(series['timestamp'], unit='ms')'''
+    return response
     

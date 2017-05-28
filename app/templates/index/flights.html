@@ -3,12 +3,20 @@
 {% block content %}
   <h1>Hello! check console</h1>
     <div> 
-        <ul>
+        <select id="tagBoxFlights" onchange="selectedTag()">
         {% for tag in fp %}
-        <li>
+        <option value="{{ tag }}">
             {{ tag }}
-        </li>
+        </option>
         {% endfor %}
-        </ul>
+        </select>
+
+        <ul>
+        {% for tmp in data %}
+            <li> {{ tmp.Date }} </li>
+            <li> {{ tmp.val }} </li>
+        {% endfor %}
+    </ul>
+    <p> {{ msg }} </p>
     </div>
 {% endblock %}
