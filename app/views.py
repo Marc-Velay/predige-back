@@ -14,13 +14,13 @@ from .forms import LoginForm
 
 
 ## SET this only for local testing, if VCAPS is set env they will be overwritten by VCAPS.
-CLIENT_ID = "dev" # "app_client_id"
-UAA_URL= "https://marcv-dapep-flask.predix-uaa.run.aws-usw02-pr.ice.predix.io/" #"https://9c5f79c3-9760-47fc-b23f-0beba4525e10.predix-uaa.run.aws-usw02-pr.ice.predix.io"
-BASE64ENCODING = "ZGV2OnRvdG8xMjM0" #'YXBwX2NsaWVudF9pZDpzZWNyZXQ='
+#CLIENT_ID = "dev" # "app_client_id"
+#UAA_URL= "https://marcv-dapep-flask.predix-uaa.run.aws-usw02-pr.ice.predix.io/" #"https://9c5f79c3-9760-47fc-b23f-0beba4525e10.predix-uaa.run.aws-usw02-pr.ice.predix.io"
+#BASE64ENCODING = "ZGV2OnRvdG8xMjM0" #'YXBwX2NsaWVudF9pZDpzZWNyZXQ='
 port = int(os.getenv("PORT", 3000))
-REDIRECT_URI = "http://localhost:3000/callback" #"http://localhost:"+str(port)+"/callback"
+#REDIRECT_URI = "http://localhost:3000/callback" #"http://localhost:"+str(port)+"/callback"
 
-uaaUrl = "https://iiotquest-uaa-service.predix-uaa.run.aws-usw02-pr.ice.predix.io"
+uaaUrl = "https://MMEurope.predix-uaa.run.aws-usw02-pr.ice.predix.io"
 tsDataUrl = "https://time-series-store-predix.run.aws-usw02-pr.ice.predix.io/v1/datapoints"
 tsUrl = "https://time-series-store-predix.run.aws-usw02-pr.ice.predix.io/v1/tags"
 requestTags = "{\"tags\": [{\"name\": \"Compressor-2015:CompressionRatio\"}]}"
@@ -28,8 +28,8 @@ requestTags = "{\"tags\": [{\"name\": \"Compressor-2015:CompressionRatio\"}]}"
 requestData = "{ \"tags\": [    {      \"name\": \"Flight_13.Air_Density_ambient_kg_m\",     }  ]}"
 requestData_last = "{  \"start\": \"50y-ago\",  \"tags\": [    {      \"name\": \"Flight_13.Air_Density_ambient_kg_m\",      \"order\": \"desc\",      \"limit\": 1    }  ]}"
 requestData_first = "{  \"start\": \"50y-ago\",  \"tags\": [    {      \"name\": \"Flight_13.Air_Density_ambient_kg_m\",      \"order\": \"asc\",      \"limit\": 1    }  ]}"
-zoneId = "6138f224-a4d2-4329-8a10-5ffdc3d4ca9f"
-tokents = base64.b64encode('timeseries_client_readonly:IM_SO_SECRET')
+zoneId = "3464894c-1cf7-440f-8f5c-a27314e35066"
+tokents = base64.b64encode('timeseries_client_readonly:secret'.encode())
 
 ## Setting up Oauth2 , this values should be read from vcaps .
 APP_URL= "http://localhost:3000/"
@@ -67,62 +67,20 @@ def home():
         # TODO: call to Check_token to validate this token
         return redirect(APP_URL+"/index", code=302)
     else : #if not IDed, redirect to identification url
-        return redirect(getUAAAuthorizationUrl(), code=302)
-
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    form = LoginForm() #fetch form from forms.py, which include objects and requirements for fields
-    if form.validate_on_submit():   #What to do when submit button is clicked
-        flash('Login requested for OpenID="%s", remember_me=%s' %
-              (form.openid.data, str(form.remember_me.data)))
-        return redirect('/index')
-    return render_template('index/login.html', #get the login.html template to fill the base.html page
-                           title='Sign In',     #Passing objects to web pages
-                           form=form)
-
-@app.route('/index')
-def index():
-    user = {'nickname': 'Miguel'}  # fake user
-     
-    flights = set()
-    firstPoint = doQueryTags(requestTags, tsUrl, uaaUrl, tokents, zoneId)
-    for item in firstPoint["results"]:
-        tmp,_ = item.split('.', 1)
-        flights.add(tmp)
-    
-    return render_template('index/index.html',
-                           title='Home',
-                           flights=flights,
-                           user=user, 
-                           loginURL=getUAAAuthorizationUrl())
-
-@app.route('/dashboard')
-def dashboardpage():
-    print 'dashboard'
-    return render_template('index/dashboard.html',
-                            title='Dashboard',
-                            app_url=APP_URL)
+        return redirect(APP_URL+"/index", code=302)
 
 @app.route('/flight', methods=['GET', 'POST'])
 def flightspage():
-    print 'flight'
     tags = set()
     flight = None
     tag = None
-    flight = request.args.get('fly')
-    tag = request.args.get('tag')
     firstPoint = doQueryTags(requestTags, tsUrl, uaaUrl, tokents, zoneId)
     for item in firstPoint["results"]:
-        _,tmp = item.split('.', 1)
-        tags.add(tmp)
-        
-    return render_template('index/flights.html',
+        tags.add(item)
+    print(tags)
+    return render_template('index/index.html',
                             title='Flight',
-                            fp=tags,
-                            flight=flight,
-                            tag=tag)
+                            fp=tags)
 
 @app.route('/flightData', methods=['GET','POST'])
 def reqFlightData():
@@ -132,91 +90,42 @@ def reqFlightData():
     data = {}
     flight = request.args.get('fly')
     tag = request.args.get('tag')
-    
+
     firstPoint = doQueryTags(requestTags, tsUrl, uaaUrl, tokents, zoneId)
     for item in firstPoint["results"]:
-        _,tmp = item.split('.', 1)
-        tags.add(tmp)
+        tags.add(item)
 
-    requestDatafromTag_last = {"start": "50y-ago", "tags": [{"name": flight+"."+tag, "order": "desc", "limit": 1}]}
-    requestDatafromTag_first = {"start": "50y-ago", "tags": [{"name": flight+"."+tag, "order": "asc", "limit": 1}]}
+    requestDatafromTag_last = {"start": "50y-ago", "tags": [{"name": tag, "order": "desc", "limit": 1}]}
+    requestDatafromTag_first = {"start": "50y-ago", "tags": [{"name": tag, "order": "asc", "limit": 1}]}
 
-    
+
     firstPoint = doQuery(json.dumps(requestDatafromTag_first, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
     if firstPoint.empty: 
         return json.dumps({'success':False, 'error':"No data associated to tag"}), 200, {'ContentType':'application/json'}
     startDate =  pd.Timestamp(firstPoint['timestamp'][0])
     startDate = int(startDate.strftime("%s")) * 1000
     startDateOrigin = startDate
-    
+
     lastPoint = doQuery(json.dumps(requestDatafromTag_last, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
     endDate =  pd.Timestamp(lastPoint['timestamp'][0])
     endDate = int(endDate.strftime("%s")) * 1000
     pdArray = []
 
-    while (startDate < endDate ):
+    '''while (startDate < endDate ):
         payload = { 'cache_time':0, 'tags':[{'name': flight+"."+tag, 'order': 'asc'}], 'start': startDate, 'end': startDate + 10000000}
         startDate = startDate + 100000000
         series = doQuery(json.dumps(payload, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
-        pdArray.append(series)
+        pdArray.append(series)'''
+    payload = { 'start':"1mm-ago", 'tags':[{'name': tag, 'order': 'asc', 'limit':200}]}
+    pdArray = doQuery(json.dumps(payload, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
 
-    fullseries = pd.concat(pdArray)
+    fullseries = pdArray
     data = dict(vals = fullseries['values'], Date=fullseries['timestamp'])
     dataJson = json.dumps([{'Date': time, 'val': value} for time, value in zip(data['Date'], data['vals'])], default=json_serial)
     data = json.loads(dataJson)
     return json.dumps({'success':True, 'data':data}), 200, {'ContentType':'application/json'}
 
-
-## Auth-code grant-type required UAA
-@app.route('/callback')
-def UAAcallback():
-    print 'callback '
-    error = request.args.get('error', '')
-    if error:
-        return "Error: " + error
-    state = request.args.get('state', '')
-    if not is_valid_state(state):
-        print 'Uh-oh, this request wasnt started by us!'
-        #abort(403)
-    code = request.args.get('code')
-    access_token = get_token(code)
-    # TODO: store the user token in sesson or redis cache , but for now use Flask session
-    session['access_token'] = access_token
-    print "You have logged in using UAA  with this access token %s" % access_token
-    return redirect(APP_URL+"/", code=302)
-   
-
-@app.route('/test')
-def test():
-    
-    firstPoint = doQuery(requestData_first, tsDataUrl, uaaUrl, tokents, zoneId)
-    startDate =  pd.Timestamp(firstPoint['timestamp'][0])
-    startDate = int(startDate.strftime("%s")) * 1000
-    startDateOrigin = startDate
-    
-    lastPoint = doQuery(requestData_last, tsDataUrl, uaaUrl, tokents, zoneId)
-    endDate =  pd.Timestamp(lastPoint['timestamp'][0])
-    endDate = int(endDate.strftime("%s")) * 1000
-    pdArray = []
-
-    while (startDate < endDate ):
-        payload = { 'cache_time': 0, 'tags': [{'name': 'Flight_13.Air_Density_ambient_kg_m', 'order': 'asc'}], 'start': startDate, 'end': startDate + 10000000}
-        startDate = startDate + 100000000
-        series = doQuery(json.dumps(payload, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
-        pdArray.append(series)
-
-    fullseries = pd.concat(pdArray)
-    data = dict(vals = fullseries['values'], Date=fullseries['timestamp'])
-    #print(data)
-    dataJson = json.dumps([{'Date': time, 'val': value} for time, value in zip(data['Date'], data['vals'])], default=json_serial)
-    data = json.loads(dataJson)
-    #print(dataJson)
-
-    return render_template('index/test.html',
-                           title='Testing in progress',
-                           fp=data)
-
-
+'''
 # method to consttruct Oauth authorization request
 def getUAAAuthorizationUrl():
     state = 'secure'
@@ -227,7 +136,7 @@ def getUAAAuthorizationUrl():
               }
     url = UAA_URL+"/oauth/authorize?" + urllib.urlencode(params)
     return url
-
+'''
 # Oauth Call to get access_token based on code from UAA
 def get_token(code):
     post_data = {"grant_type": "authorization_code",
@@ -263,9 +172,9 @@ def json_serial(obj):
 
 #prepare querries for Time Series
 def doQueryTags(payload, tsUrl, uaaUrl, tokents, zoneId):
-    
+    print(tokents.decode('utf-8'))
     headers = {
-        'authorization': 'Basic ' + tokents,
+        'authorization': 'Basic ' + tokents.decode('utf-8'),
         'cache-control': 'no-cache',
         'content-type': 'application/x-www-form-urlencoded'
     }
@@ -291,7 +200,7 @@ def doQueryTags(payload, tsUrl, uaaUrl, tokents, zoneId):
 def doQuery(payload, tsDataUrl, uaaUrl, tokents, zoneId):
     
     headers = {
-        'authorization': 'Basic ' + tokents,
+        'authorization': 'Basic ' + tokents.decode('utf-8'),
         'cache-control': 'no-cache',
         'content-type': 'application/x-www-form-urlencoded'
     }
@@ -299,7 +208,7 @@ def doQuery(payload, tsDataUrl, uaaUrl, tokents, zoneId):
         'client_id':'timeseries_client_readonly',
         'grant_type':'client_credentials'
     }
-    
+
     response = requests.request('POST', uaaUrl+"/oauth/token", data=data, headers=headers)
     tokents = json.loads(response.text)['access_token']
     headers = {
@@ -308,16 +217,16 @@ def doQuery(payload, tsDataUrl, uaaUrl, tokents, zoneId):
         'content-type': "application/json",
         'cache-control': "no-cache"
     }
-    
+
     response = requests.request("POST", tsDataUrl, data=payload, headers=headers)
     data = json.loads(response.text)['tags'][0]['results'][0]['values']
     column_labels = ['timestamp', 'values', 'quality']
     series = pd.DataFrame(data, columns=column_labels)
     series['timestamp'] = pd.to_datetime(series['timestamp'], unit='ms')
     return series
-    
+
 def doQueryTwo(payload, tsDataUrl, uaaUrl, tokents, zoneId):
-    
+
     headers = {
         'authorization': 'Basic ' + tokents,
         'cache-control': 'no-cache',
@@ -327,7 +236,7 @@ def doQueryTwo(payload, tsDataUrl, uaaUrl, tokents, zoneId):
         'client_id':'timeseries_client_readonly',
         'grant_type':'client_credentials'
     }
-    
+
     response = requests.request('POST', uaaUrl+"/oauth/token", data=data, headers=headers)
     tokents = json.loads(response.text)['access_token']
     headers = {
