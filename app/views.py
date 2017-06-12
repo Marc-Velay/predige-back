@@ -65,9 +65,9 @@ def home():
     key = session.get('key', 'not set') #UAA session token
     if 'access_token' in session: # check if user has identified himself
         # TODO: call to Check_token to validate this token
-        return redirect(APP_URL+"/index", code=302)
+        return redirect(APP_URL+"/flight", code=302)
     else : #if not IDed, redirect to identification url
-        return redirect(APP_URL+"/index", code=302)
+        return redirect(APP_URL+"/flight", code=302)
 
 @app.route('/flight', methods=['GET', 'POST'])
 def flightspage():
@@ -77,7 +77,6 @@ def flightspage():
     firstPoint = doQueryTags(requestTags, tsUrl, uaaUrl, tokents, zoneId)
     for item in firstPoint["results"]:
         tags.add(item)
-    print(tags)
     return render_template('index/index.html',
                             title='Flight',
                             fp=tags)
@@ -125,18 +124,7 @@ def reqFlightData():
     data = json.loads(dataJson)
     return json.dumps({'success':True, 'data':data}), 200, {'ContentType':'application/json'}
 
-'''
-# method to consttruct Oauth authorization request
-def getUAAAuthorizationUrl():
-    state = 'secure'
-    params = {"client_id": CLIENT_ID,
-              "response_type": "code",
-              "state": state,
-              "redirect_uri": REDIRECT_URI
-              }
-    url = UAA_URL+"/oauth/authorize?" + urllib.urlencode(params)
-    return url
-'''
+
 # Oauth Call to get access_token based on code from UAA
 def get_token(code):
     post_data = {"grant_type": "authorization_code",
