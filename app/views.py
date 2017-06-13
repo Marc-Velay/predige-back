@@ -34,10 +34,10 @@ tokents = base64.b64encode('timeseries_client_readonly:secret'.encode())
 ## Setting up Oauth2 , this values should be read from vcaps .
 APP_URL= "http://localhost:3000/"
 # Get UAA credentials from VCAPS
-if 'VCAP_SERVICES' in os.environ:
-    services = json.loads(os.getenv('VCAP_SERVICES'))
-    uaa_env = services['predix-uaa'][0]['credentials']
-    UAA_URL=uaa_env['uri']
+#if 'VCAP_SERVICES' in os.environ:
+    #services = json.loads(os.getenv('VCAP_SERVICES'))
+    #uaa_env = services['predix-uaa'][0]['credentials']
+    #UAA_URL=uaa_env['uri']
 
 # Get UAA credentials from VCAPS
 if 'VCAP_APPLICATION' in os.environ:
@@ -65,9 +65,9 @@ def home():
     key = session.get('key', 'not set') #UAA session token
     if 'access_token' in session: # check if user has identified himself
         # TODO: call to Check_token to validate this token
-        return redirect(APP_URL+"/index", code=302)
+        return redirect(APP_URL+"/flight", code=302)
     else : #if not IDed, redirect to identification url
-        return redirect(APP_URL+"/index", code=302)
+        return redirect(APP_URL+"/flight", code=302)
 
 @app.route('/flight', methods=['GET', 'POST'])
 def flightspage():

@@ -1,7 +1,7 @@
 ---
 applications:
 - name: predige-backs
-  memory: 512M
+  memory: 1024M
   #buildpack: python_buildpack
   command: python run.py
 #services:
