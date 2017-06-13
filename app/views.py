@@ -6,7 +6,6 @@ import urllib
 import base64
 import os
 import pandas as pd
-import base64
 import json, codecs
 from datetime import datetime
 from app import app
@@ -110,11 +109,6 @@ def reqFlightData():
     endDate = int(endDate.strftime("%s")) * 1000
     pdArray = []
 
-    '''while (startDate < endDate ):
-        payload = { 'cache_time':0, 'tags':[{'name': flight+"."+tag, 'order': 'asc'}], 'start': startDate, 'end': startDate + 10000000}
-        startDate = startDate + 100000000
-        series = doQuery(json.dumps(payload, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
-        pdArray.append(series)'''
     payload = { 'start':"1mm-ago", 'tags':[{'name': tag, 'order': 'asc', 'limit':200}]}
     pdArray = doQuery(json.dumps(payload, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
 
