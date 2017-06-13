@@ -29,14 +29,8 @@ requestData_last = "{  \"start\": \"50y-ago\",  \"tags\": [    {      \"name\": 
 requestData_first = "{  \"start\": \"50y-ago\",  \"tags\": [    {      \"name\": \"Flight_13.Air_Density_ambient_kg_m\",      \"order\": \"asc\",      \"limit\": 1    }  ]}"
 zoneId = "3464894c-1cf7-440f-8f5c-a27314e35066"
 tokents = base64.b64encode('timeseries_client_readonly:secret'.encode())
-
-## Setting up Oauth2 , this values should be read from vcaps .
 APP_URL= "http://localhost:3000/"
-# Get UAA credentials from VCAPS
-#if 'VCAP_SERVICES' in os.environ:
-    #services = json.loads(os.getenv('VCAP_SERVICES'))
-    #uaa_env = services['predix-uaa'][0]['credentials']
-    #UAA_URL=uaa_env['uri']
+
 
 # Get UAA credentials from VCAPS
 if 'VCAP_APPLICATION' in os.environ:
@@ -57,7 +51,6 @@ if(os.getenv('client_id')):
 #Used for authentification on services
 if(os.getenv('base64encodedClientDetails')):
     BASE64ENCODING = os.getenv('base64encodedClientDetails')
-
 
 @app.route('/')
 def home():
@@ -82,7 +75,7 @@ def flightspage():
 
 @app.route('/Data', methods=['GET','POST'])
 def reqFlightData():
-    tags = set()
+    'tags = set()
     flight = None
     tag = None
     data = {}
@@ -119,8 +112,9 @@ def reqFlightData():
     data = dict(vals = fullseries['values'], Date=fullseries['timestamp'])
     dataJson = json.dumps([{'Date': time, 'val': value} for time, value in zip(data['Date'], data['vals'])], default=json_serial)
     data = json.loads(dataJson)
+    
     return json.dumps({'success':True, 'data':data}), 200, {'ContentType':'application/json'}
-
+    
 
 # Oauth Call to get access_token based on code from UAA
 def get_token(code):
