@@ -1,7 +1,8 @@
 ---
 applications:
-- name: predige-backss
+- name: predige-back-tf
   memory: 8192M
+  disk: 10GB
   #buildpack: python_buildpack
   command: python run.py
 #services:

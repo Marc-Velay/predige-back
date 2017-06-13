@@ -75,7 +75,7 @@ def flightspage():
 
 @app.route('/Data', methods=['GET','POST'])
 def reqFlightData():
-    'tags = set()
+    tags = set()
     flight = None
     tag = None
     data = {}
