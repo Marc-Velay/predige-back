@@ -6,7 +6,6 @@ import urllib
 import base64
 import os
 import pandas as pd
-import base64
 import json, codecs
 from datetime import datetime
 from app import app
@@ -77,20 +76,20 @@ def flightspage():
     firstPoint = doQueryTags(requestTags, tsUrl, uaaUrl, tokents, zoneId)
     for item in firstPoint["results"]:
         tags.add(item)
-    print(tags)
     return render_template('index/index.html',
                             title='Flight',
                             fp=tags)
 
-@app.route('/flightData', methods=['GET','POST'])
+@app.route('/Data', methods=['GET','POST'])
 def reqFlightData():
     tags = set()
     flight = None
     tag = None
     data = {}
-    flight = request.args.get('fly')
     tag = request.args.get('tag')
-
+    start = request.args.get('start')
+    end = request.args.get('end')
+    '''
     firstPoint = doQueryTags(requestTags, tsUrl, uaaUrl, tokents, zoneId)
     for item in firstPoint["results"]:
         tags.add(item)
@@ -100,6 +99,7 @@ def reqFlightData():
 
 
     firstPoint = doQuery(json.dumps(requestDatafromTag_first, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
+    print(firstPoint)
     if firstPoint.empty: 
         return json.dumps({'success':False, 'error':"No data associated to tag"}), 200, {'ContentType':'application/json'}
     startDate =  pd.Timestamp(firstPoint['timestamp'][0])
@@ -110,33 +110,18 @@ def reqFlightData():
     endDate =  pd.Timestamp(lastPoint['timestamp'][0])
     endDate = int(endDate.strftime("%s")) * 1000
     pdArray = []
-
-    '''while (startDate < endDate ):
-        payload = { 'cache_time':0, 'tags':[{'name': flight+"."+tag, 'order': 'asc'}], 'start': startDate, 'end': startDate + 10000000}
-        startDate = startDate + 100000000
-        series = doQuery(json.dumps(payload, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
-        pdArray.append(series)'''
-    payload = { 'start':"1mm-ago", 'tags':[{'name': tag, 'order': 'asc', 'limit':200}]}
+    '''
+    payload = { 'tags':[{'name': tag, 'order': 'asc'}], 'start': start, 'end': end}
     pdArray = doQuery(json.dumps(payload, codecs.getwriter('utf-8'), ensure_ascii=False), tsDataUrl, uaaUrl, tokents, zoneId)
 
     fullseries = pdArray
+    print(fullseries)
     data = dict(vals = fullseries['values'], Date=fullseries['timestamp'])
     dataJson = json.dumps([{'Date': time, 'val': value} for time, value in zip(data['Date'], data['vals'])], default=json_serial)
     data = json.loads(dataJson)
     return json.dumps({'success':True, 'data':data}), 200, {'ContentType':'application/json'}
 
-'''
-# method to consttruct Oauth authorization request
-def getUAAAuthorizationUrl():
-    state = 'secure'
-    params = {"client_id": CLIENT_ID,
-              "response_type": "code",
-              "state": state,
-              "redirect_uri": REDIRECT_URI
-              }
-    url = UAA_URL+"/oauth/authorize?" + urllib.urlencode(params)
-    return url
-'''
+
 # Oauth Call to get access_token based on code from UAA
 def get_token(code):
     post_data = {"grant_type": "authorization_code",
@@ -219,6 +204,7 @@ def doQuery(payload, tsDataUrl, uaaUrl, tokents, zoneId):
     }
 
     response = requests.request("POST", tsDataUrl, data=payload, headers=headers)
+    print(response.text)
     data = json.loads(response.text)['tags'][0]['results'][0]['values']
     column_labels = ['timestamp', 'values', 'quality']
     series = pd.DataFrame(data, columns=column_labels)
