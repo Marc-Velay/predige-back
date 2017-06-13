@@ -33,8 +33,10 @@
 
         function requestData(tag) {
             $.ajax({
-                url: "/flightData" +
-                    "?tag=" + tag,
+                url: "/Data" +
+                    "?tag=" + tag +
+                    "&start=5mm-ago" +
+                    "&end=4mm-ago",
                 type: 'GET',
                 dataType: 'json',
                 success: function(data, result, o) {
